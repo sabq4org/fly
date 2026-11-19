@@ -7,3 +7,6 @@ DerivedData/
 .env.*
 *.p12
 *.mobileprovision
+
+# Licensed brand font: kept locally, not in the public repo
+Fly/Fonts/*.otf
