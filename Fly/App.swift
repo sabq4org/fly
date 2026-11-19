@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct FlyApp: App {
     @StateObject private var store = TripStore()
+    init() { BrandFont.register() }
     var body: some Scene {
         WindowGroup {
             Home()
@@ -32,16 +33,17 @@ struct Home: View {
         GeometryReader { space in
             let trip = store.current(at: now)
             ZStack {
-                LinearGradient(colors: [Color(red: 0.77, green: 0.87, blue: 0.94),
-                                        Color(red: 0.90, green: 0.95, blue: 0.97),
-                                        Color(red: 0.69, green: 0.82, blue: 0.90)],
+                LinearGradient(stops: [.init(color: Color(red: 0.23, green: 0.55, blue: 0.87), location: 0),
+                                       .init(color: Color(red: 0.55, green: 0.77, blue: 0.94), location: 0.42),
+                                       .init(color: Color(red: 0.91, green: 0.96, blue: 0.99), location: 1)],
                                startPoint: .top, endPoint: .bottom).ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 0) {
                         HStack {
                             HStack(spacing: 6) {
                                 Image(systemName: "airplane.departure").font(.system(size: 19, weight: .semibold))
-                                Text("إقلاع").font(.system(size: 23, weight: .bold))
+                                Text("إقــــلاع").font(BrandFont.bold(28))
+                                    .accessibilityLabel("إقلاع")
                             }
                             Spacer()
                             Button { panel = .settings } label: {
@@ -53,7 +55,8 @@ struct Home: View {
                         VStack(spacing: 4) {
                             if let t = trip {
                                 Text(ClockText.string(t.scheduled, "EEEE، d MMMM", zone: t.zone))
-                                    .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                                    .font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink.opacity(0.78))
+                                    .shadow(color: .white.opacity(0.35), radius: 6)
                                 Text("رحلتك إلى " + ClockText.place(t.flight.destinationCode, t.flight.destinationName))
                                     .font(.system(size: 36, weight: .bold)).multilineTextAlignment(.center)
                             } else {
@@ -61,10 +64,12 @@ struct Home: View {
                             }
                         }.padding(.horizontal, 16).padding(.top, 24)
 
-                        VStack(spacing: -46) {
+                        let planeWidth = min(space.size.width * 0.84, 440)
+                        VStack(spacing: -planeWidth * 0.11) {
                             Image("Aircraft").resizable().scaledToFit()
-                                .frame(maxWidth: 510)
-                                .frame(height: min(space.size.width * 0.55, 245), alignment: .bottom)
+                                .frame(width: planeWidth)
+                                .shadow(color: .ink.opacity(0.16), radius: 14, y: 12)
+                                .padding(.top, 26)
                                 .accessibilityHidden(true).allowsHitTesting(false).zIndex(1)
                             Group {
                                 if let t = trip, t.ticketDue(at: now) {
@@ -91,7 +96,14 @@ struct Home: View {
                                         .background(.white, in: RoundedRectangle(cornerRadius: 24))
                                 }
                             }.padding(.horizontal, 20)
-                        }.padding(.top, 6)
+                        }
+                        .background(alignment: .top) {
+                            Image("Clouds").resizable().scaledToFit()
+                                .frame(width: space.size.width * 1.08)
+                                .opacity(0.95)
+                                .accessibilityHidden(true).allowsHitTesting(false)
+                        }
+                        .padding(.top, 6)
                         if trip != nil { addButton.padding(.top, 17) }
                         let later = store.trips.filter { $0.id != trip?.id && $0.visible(at: now) }.sorted { $0.scheduled < $1.scheduled }
                         if !later.isEmpty {
